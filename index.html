@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>zy0n · my space</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@500;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:        #080205;
+  --red:       #c0392b;
+  --accent:    #d94f4f;
+  --accent2:   #e8728a;
+  --glass:     rgba(10, 4, 7, 0.65); 
+  --glass-h:   rgba(18, 7, 13, 0.75);
+  --border:    rgba(255,255,255,0.08);
+  --border-h:  rgba(208,79,79,0.35);
+  --text:      #eddada;
+  --muted:     rgba(237,218,218,0.45);
+  --green:     #3fc77a;
+}
+
+html,body{
+  width:100%;min-height:100%;
+  overflow-x:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+
+#enter-screen {
+  position: fixed; inset: 0;
+  background: #060204; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text); font-family: 'Syne', sans-serif;
+  font-size: 1.1rem; letter-spacing: 3px;
+  cursor: pointer; transition: opacity 0.8s ease, filter 0.8s ease;
+}
+#enter-screen span { animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+#scene{
+  position:fixed;inset:0;
+  perspective:900px;
+  perspective-origin:50% 50%;
+  z-index:0;
+  overflow:hidden;
+}
+#bg{
+  position:absolute;
+  inset:-12%;
+  background-image: url('0619.gif');
+  background-size:cover;
+  background-position:center;
+  transform-origin:center center;
+  transform:rotateX(0deg) rotateY(0deg) scale(1.18);
+  will-change:transform;
+  filter:brightness(0.25) saturate(1.15) contrast(1.05) blur(4px);
+  transition:filter 1.8s ease;
+}
+#bg::after{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, transparent 0%, rgba(8,2,5,0.55) 100%),
+    linear-gradient(to bottom, rgba(8,2,5,0.1) 0%, transparent 40%, rgba(8,2,5,0.6) 80%, rgba(8,2,5,1) 100%);
+  pointer-events: none;
+}
+
+#rain-canvas{
+  position:fixed;inset:0;
+  z-index:20; 
+  pointer-events:none; 
+  opacity:0;
+  transition: opacity 2s ease-out;
+}
+
+#thunder{
+  position:fixed;inset:0;
+  z-index:99;
+  pointer-events:none;
+  background: #ffffff; 
+  opacity:0;
+  will-change: opacity;
+}
+
+#app{
+  position:relative;z-index:10; 
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:48px 20px 60px;
+}
+
+.card-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  width:100%;
+  max-width:472px;
+}
+
+@media (min-width: 768px) {
+  .card-wrap {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    max-width: 900px;
+  }
+  .full-width {
+    grid-column: span 2;
+  }
+}
+
+.card{
+  opacity:0;
+  transform:translateY(60px) scale(0.96);
+  filter:blur(6px);
+  animation:popUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.card:nth-child(1){animation-delay:0.05s}
+.card:nth-child(2){animation-delay:0.12s}
+.card:nth-child(3){animation-delay:0.20s}
+.card:nth-child(4){animation-delay:0.27s}
+.card:nth-child(5){animation-delay:0.35s}
+.card:nth-child(6){animation-delay:0.42s}
+.card:nth-child(7){animation-delay:0.48s}
+
+@keyframes popUp{
+  0%  {opacity:0;transform:translateY(60px) scale(0.96);filter:blur(6px)}
+  65% {filter:blur(1px)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+
+.card{
+  background:var(--glass);
+  backdrop-filter:blur(12px) saturate(140%) brightness(1.05);
+  -webkit-backdrop-filter:blur(12px) saturate(140%) brightness(1.05);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px 20px;
+  transition:border-color 0.35s ease, box-shadow 0.35s ease, transform 0.25s ease;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);
+  pointer-events:none;
+}
+.card:hover{
+  border-color:var(--border-h);
+  box-shadow:0 0 28px rgba(192,57,43,0.15), 0 4px 32px rgba(0,0,0,0.4);
+  transform:translateY(-2px);
+}
+
+.profile-row{display:flex;align-items:center;gap:16px}
+.pfp-wrap{position:relative;flex-shrink:0}
+.pfp{
+  width:76px;height:76px;border-radius:50%;object-fit:cover;
+  border:2px solid transparent;
+  background:linear-gradient(var(--bg),var(--bg)) padding-box,
+             linear-gradient(135deg,var(--accent),var(--accent2)) border-box;
+}
+.pfp-ring{
+  position:absolute;inset:-4px;
+  border-radius:50%;
+  border:1.5px solid rgba(216,100,100,0.25);
+  animation:ringPulse 3s ease-in-out infinite;
+}
+@keyframes ringPulse{
+  0%,100%{transform:scale(1);opacity:0.4}
+  50%    {transform:scale(1.06);opacity:0.9}
+}
+.status-dot{
+  position:absolute;bottom:3px;right:3px;
+  width:13px;height:13px;border-radius:50%;
+  background:var(--green);
+  border:2.5px solid var(--bg);
+  box-shadow:0 0 6px rgba(63,199,122,0.6);
+}
+.profile-info{flex:1}
+.username{
+  font-family:'Syne',sans-serif;
+  font-size:1.3rem;font-weight:800;
+  letter-spacing:-0.6px;color:#fff;
+  display:flex;align-items:center;gap:8px;
+}
+.online-pill{
+  font-family:'Inter',sans-serif;
+  font-size:0.62rem;font-weight:500;
+  background:rgba(63,199,122,0.15);
+  border:1px solid rgba(63,199,122,0.3);
+  color:var(--green);
+  padding:2px 7px;border-radius:20px;
+  letter-spacing:0.5px;
+}
+.handle{font-size:0.77rem;color:var(--muted);margin-top:3px}
+.pronouns-age{
+  font-size:0.71rem;color:var(--accent2);
+  margin-top:3px;letter-spacing:0.2px;
+}
+
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.badge{
+  font-size:0.67rem;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.04);
+  color:var(--muted);letter-spacing:0.2px;
+  transition:background 0.2s,border-color 0.2s;
+}
+.badge:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15)}
+.badge.red{border-color:rgba(192,57,43,0.4);color:#e07070;background:rgba(192,57,43,0.08)}
+.badge.pink{border-color:rgba(232,114,138,0.35);color:var(--accent2);background:rgba(232,114,138,0.07)}
+
+.meta-row{
+  display:flex;gap:14px;
+  font-size:0.7rem;color:var(--muted);
+  margin-top:11px;align-items:center;
+}
+.meta-row span{display:flex;align-items:center;gap:4px}
+
+.music-wrap{display:flex;align-items:center;gap:14px}
+.music-art{
+  width:52px;height:52px;border-radius:10px;
+  object-fit:cover;flex-shrink:0;
+  box-shadow:0 4px 16px rgba(0,0,0,0.5);
+}
+.music-info{flex:1;min-width:0}
+.music-title{
+  font-size:0.88rem;font-weight:600;
+  color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.music-artist{font-size:0.71rem;color:var(--muted);margin-top:1px}
+.prog-row{display:flex;align-items:center;gap:7px;margin-top:9px}
+.prog-bar{
+  flex:1;height:4px;
+  background:rgba(255,255,255,0.1);
+  border-radius:2px;
+  position:relative;
+}
+.prog-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:2px;
+  position:relative;
+}
+.prog-fill::after{
+  content:'';
+  position:absolute;right:0;top:-2px;
+  width:8px;height:8px;border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 6px var(--accent2);
+}
+.prog-time{font-size:0.63rem;color:var(--muted)}
+.music-ctrl{display:flex;gap:13px;color:var(--muted);font-size:0.95rem; user-select: none;}
+.music-ctrl span{cursor:pointer;transition:color 0.2s,transform 0.15s}
+.music-ctrl span:hover{color:#fff;transform:scale(1.2)}
+
+.stitle{
+  font-size:0.63rem;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:10px;font-weight:600;
+  display:flex;align-items:center;gap:7px;
+}
+.stitle::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(192,57,43,0.35),transparent);
+}
+
+.link-list{display:flex;flex-direction:column;gap:7px}
+.lnk{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:13px;
+  background:rgba(255,255,255,0.01);border:1px solid var(--border);
+  text-decoration:none;color:var(--text);
+  transition:background 0.22s,border-color 0.22s,transform 0.18s,box-shadow 0.22s;
+  position:relative;overflow:hidden;
+}
+.lnk::before{
+  content:'';
+  position:absolute;left:-60%;top:0;bottom:0;width:50%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent);
+  transition:left 0.4s ease;
+}
+.lnk:hover::before{left:120%}
+.lnk:hover{
+  background:rgba(192,57,43,0.1);border-color:var(--border-h);
+  transform:translateX(4px);
+  box-shadow:0 2px 18px rgba(192,57,43,0.1);
+}
+.lnk-icon{
+  width:37px;height:37px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.lnk-icon.dc {background:rgba(88,101,242,0.22);border:1px solid rgba(88,101,242,0.2)}
+.lnk-icon.ig {background:rgba(225,48,108,0.18);border:1px solid rgba(225,48,108,0.18)}
+.lnk-icon.rb {background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08)}
+.lnk-icon.sp {background:rgba(30,215,96,0.13);border:1px solid rgba(30,215,96,0.15)}
+.lnk-main{flex:1}
+.lnk-name{font-size:0.85rem;font-weight:500;color:#fff}
+.lnk-sub{font-size:0.69rem;color:var(--muted);margin-top:1px}
+.lnk-arrow{color:var(--muted);font-size:0.75rem;transition:transform 0.2s}
+.lnk:hover .lnk-arrow{transform:translateX(3px);color:var(--accent)}
+
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ibox{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:12px;padding:11px 13px;
+}
+.ibox-t{
+  font-size:0.61rem;text-transform:uppercase;letter-spacing:1.8px;
+  color:var(--muted);margin-bottom:6px;font-weight:600;
+}
+.ibox-c{font-size:0.74rem;line-height:1.68;color:var(--text)}
+
+.tag{
+  display:inline-block;font-size:0.69rem;padding:3px 8px;
+  border-radius:5px;margin:2px 2px;letter-spacing:0.2px;
+}
+.tag.red{
+  background:rgba(192,57,43,0.13);
+  border:1px solid rgba(192,57,43,0.28);
+  color:#e07070;
+}
+.tag.pink{
+  background:rgba(232,114,138,0.08);
+  border:1px solid rgba(232,114,138,0.22);
+  color:var(--accent2);
+}
+
+.footer{
+  text-align:center;font-size:0.64rem;
+  color:rgba(255,255,255,0.15);
+  padding:15px;letter-spacing:1.2px;
+}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(192,57,43,0.35);border-radius:2px}
+</style>
+</head>
+<body>
+
+<audio id="local-audio" src="music.mp3" preload="auto" loop></audio>
+
+<div id="enter-screen" onclick="startExperience()">
+  <span>[ click to enter ]</span>
+</div>
+
+<div id="scene">
+  <div id="bg"></div>
+</div>
+
+<canvas id="rain-canvas"></canvas>
+<div id="thunder"></div>
+
+<div id="app">
+  <div class="card-wrap">
+
+  <div class="card full-width">
+      <div class="profile-row">
+        <div class="pfp-wrap">
+          <div class="pfp-ring"></div>
+          
+          <img class="pfp" src="https://i.pinimg.com/originals/e6/5d/50/e65d50f699ab952ca89c8525058c4a0d.gif" alt="pfp"/>
+          
+          <div class="status-dot"></div>
+        </div>
+        <div class="profile-info">
+          <div class="username">Zave / Zyon <span class="online-pill">● online</span></div>
+          <div class="handle">@zy0n · he / she / any</div>
+          <div class="pronouns-age">14 · Straight · ESFP · july 24 ♡</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge">🍓 not taken</span>
+        <span class="badge pink">🎀 chronically online</span>
+        <span class="badge red">10- or 26+ dni</span>
+        <span class="badge">💤 forgets to reply</span>
+        <span class="badge">⌨️ keyboard smasher</span>
+      </div>
+      <div class="meta-row">
+        <span>👁 198</span>
+        <span>📍 online</span>
+      </div>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 100%;">
+      <div class="music-wrap">
+        <img class="music-art" src="https://images.genius.com/314b5e9b4b52df169dbebafc75e77d29.1000x1000x1.png" alt="art"/>
+        
+        <div class="music-info">
+          <div class="music-title">all i want is you</div>
+          <div class="music-artist">Rebzyyx feat. hoshie star</div>
+          
+          <div class="prog-row">
+            <span class="prog-time" id="time-current">0:00</span>
+            <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+            <span class="prog-time" id="time-total">0:00</span>
+          </div>
+        </div>
+        <div class="music-ctrl">
+          <span>⏮</span><span id="play-btn" onclick="togglePlay()">⏸</span><span>⏭</span>
+        </div>
+      </div>
+      
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; margin-top: 14px; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
+        <img src="https://i.pinimg.com/originals/5c/0d/3a/5c0d3aeec3c658b9beac15df5adc5ca6.gif" style="width: 100%; height: 100%; min-height: 120px; max-height: 200px; object-fit: cover; opacity: 0.85;" alt="vibes-gif"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">find me here</div>
+      <div class="link-list">
+        
+        <a class="lnk" href="https://discordapp.com/users/1215150620403699746" target="_blank">
+          <div class="lnk-icon dc">
+            <img src="https://cdn.simpleicons.org/discord/white" width="18" height="18" alt="Discord">
+          </div>
+          <div class="lnk-main"><div class="lnk-name">Discord</div><div class="lnk-sub">zaf_ina</div></div>
+          <span class="lnk-arrow">›</span>
+        </a>
+        
+        <a class="lnk" href="https://www.instagram.com/insomniaced_f1na._" target="_blank">
+          <div class="lnk-icon ig">
+            <img src="https://cdn.simpleicons.org/instagram/white" width="18" height="18" alt="Instagram">
+          </div>
+          <div class="lnk-main"><div class="lnk-name">Instagram</div><div class="lnk-sub">insomniaced_f1na._</div></div>
+          <span class="lnk-arrow">›</span>
+        </a>
+        
+        <a class="lnk" href="https://www.roblox.com/users/4037094061/profile" target="_blank">
+          <div class="lnk-icon rb">
+            <img src="https://cdn.simpleicons.org/roblox/white" width="18" height="18" alt="Roblox">
+          </div>
+          <div class="lnk-main"><div class="lnk-name">Roblox</div><div class="lnk-sub">Zyon</div></div>
+          <span class="lnk-arrow">›</span>
+        </a>
+        
+        <a class="lnk" href="https://open.spotify.com/user/31odrgyjd5hircvmvo3pypgigj7u" target="_blank">
+          <div class="lnk-icon sp">
+            <img src="https://cdn.simpleicons.org/spotify/white" width="18" height="18" alt="Spotify">
+          </div>
+          <div class="lnk-main"><div class="lnk-name">Spotify</div><div class="lnk-sub">Zyon<3</div></div>
+          <span class="lnk-arrow">›</span>
+        </a>
+        
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="igrid">
+        <div class="ibox">
+          <div class="ibox-t">❤ loves</div>
+          <div class="ibox-c">cats · ramen · BL · food · sleep · anime · anime games · fashion · making friends · scented candy · gacha · deep late night convos</div>
+        </div>
+        <div class="ibox">
+          <div class="ibox-t">✗ hates</div>
+          <div class="ibox-c">homophobes · rude ppl · insects · gooners · backstabbers · insecurity jokes · snitches · teacher's pets</div>
+        </div>
+      </div>
+      <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; height: 100px; border: 1px solid var(--border);">
+        <img src="https://i.pinimg.com/originals/c1/50/32/c150321cd8c27063d79a40d8b020aee6.gif" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85;" alt="aesthetic gif">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">fandoms & interests</div>
+      <div class="igrid">
+        <div class="ibox">
+          <div class="ibox-t">🎌 fandoms</div>
+          <div class="ibox-c">ALNST · IvanTill<br/>JJK · Megumi<br/>Mthwashing · Daisuke<br/>Genshin · Childe<br/>SG · Ji-Yeong<br/>Cold Front · Winnie</div>
+        </div>
+        <div class="ibox">
+          <div class="ibox-t">🎮 games</div>
+          <div class="ibox-c">Roblox<br/>Sally Face<br/>Mthwashing<br/>Minecraft<br/>Genshin Impact<br/>Honkai Star Rail</div>
+        </div>
+      </div>
+      <div class="ibox" style="margin-top:8px">
+        <div class="ibox-t">🚢 ships</div>
+        <div class="ibox-c">Ivantill · Mizisua · Wooluka · Zhongchi · Kavetham · Kaeluc · Thangyu</div>
+      </div>
+    </div>
+
+    <div class="card full-width">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <div class="stitle" style="color:#e07070">🚫 don't follow if</div>
+          <div>
+            <span class="tag red">10- or 26+</span>
+            <span class="tag red">homophobic</span>
+            <span class="tag red">transphobic</span>
+            <span class="tag red">starts fights</span>
+            <span class="tag red">problematic</span>
+            <span class="tag red">takes jokes seriously</span>
+          </div>
+        </div>
+        <div>
+          <div class="stitle" style="color:var(--accent2)">📌 before you follow</div>
+          <div>
+            <span class="tag pink">deep convos ♡</span>
+            <span class="tag pink">keyboard smasher</span>
+            <span class="tag pink">forgets to reply</span>
+            <span class="tag pink">yaps alot</span>
+            <span class="tag pink">chronically online</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer card full-width" style="background:transparent;border:none;box-shadow:none;">
+      MADE BY LYAN198 (without carrd brick by brick)
+    </div>
+
+  </div>
+</div>
+
+<script>
+let experienceStarted = false;
+let audioCtx;
+let rainFilter, thunderFilter;
+
+const localAudio = document.getElementById('local-audio');
+const playBtn = document.getElementById('play-btn');
+
+function formatTime(secs) {
+  if(isNaN(secs) || secs < 0) return "0:00";
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+localAudio.addEventListener('timeupdate', () => {
+  const current = localAudio.currentTime;
+  const duration = localAudio.duration || 1;
+  const percent = (current / duration) * 100;
+  document.getElementById('prog-fill').style.width = percent + '%';
+  document.getElementById('time-current').innerText = formatTime(current);
+});
+
+localAudio.addEventListener('loadedmetadata', () => {
+  document.getElementById('time-total').innerText = formatTime(localAudio.duration);
+});
+
+localAudio.addEventListener('play', () => { playBtn.innerText = '⏸'; });
+localAudio.addEventListener('pause', () => { playBtn.innerText = '▶'; });
+
+function setupWebAudioSystem() {
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  const bufferSize = 2 * audioCtx.sampleRate;
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2.0 - 1.0;
+  }
+  
+  const whiteNoise = audioCtx.createBufferSource();
+  whiteNoise.buffer = noiseBuffer;
+  whiteNoise.loop = true;
+  
+  rainFilter = audioCtx.createBiquadFilter();
+  rainFilter.type = 'lowpass';
+  rainFilter.frequency.setValueAtTime(800, audioCtx.currentTime); 
+  
+  const rainGain = audioCtx.createGain();
+  rainGain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
+  
+  whiteNoise.connect(rainFilter);
+  rainFilter.connect(rainGain);
+  rainGain.connect(audioCtx.destination);
+  whiteNoise.start();
+}
+
+function triggerMuffledThunderStrikeAudio() {
+  if (!audioCtx) return;
+  
+  const bufferSize = 3 * audioCtx.sampleRate;
+  const thunderBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const output = thunderBuffer.getChannelData(0);
+  
+  let lastOut = 0.0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2.0 - 1.0;
+    output[i] = 0.02 * white + 0.98 * lastOut; 
+    lastOut = output[i];
+  }
+  
+  const thunderSource = audioCtx.createBufferSource();
+  thunderSource.buffer = thunderBuffer;
+  
+  thunderFilter = audioCtx.createBiquadFilter();
+  thunderFilter.type = 'lowpass';
+  thunderFilter.frequency.setValueAtTime(200, audioCtx.currentTime);
+  
+  const thunderGain = audioCtx.createGain();
+  thunderGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+  thunderGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
+  
+  thunderSource.connect(thunderFilter);
+  thunderFilter.connect(thunderGain);
+  thunderGain.connect(audioCtx.destination);
+  
+  thunderSource.start();
+}
+
+const enterScreen = document.getElementById('enter-screen');
+const rainCanvas = document.getElementById('rain-canvas');
+const th = document.getElementById('thunder');
+
+function startExperience() {
+  experienceStarted = true;
+  enterScreen.style.opacity = '0';
+  setTimeout(() => enterScreen.style.display = 'none', 800);
+  
+  rainCanvas.style.opacity = '1'; 
+  setupWebAudioSystem();
+  
+  triggerBrighterThunderstormStrike();
+  startBackgroundStormScheduler();
+  
+  localAudio.volume = 0.45;
+  const playPromise = localAudio.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(error => {
+      console.log("Audio play failed:", error);
+    });
+  }
+  
+  initVisualizerContext();
+}
+
+function triggerBrighterThunderstormStrike() {
+  triggerMuffledThunderStrikeAudio(); 
+  
+  th.style.transition = 'none';
+  th.style.opacity = '0.90'; 
+  
+  setTimeout(() => {
+    th.style.transition = 'opacity 0.12s ease-out';
+    th.style.opacity = '0.25';
+  }, 120);
+  
+  setTimeout(() => {
+    th.style.transition = 'none';
+    th.style.opacity = '0.80'; 
+  }, 240);
+  
+  setTimeout(() => {
+    th.style.transition = 'opacity 2.4s cubic-bezier(0.15, 0.85, 0.2, 1)';
+    th.style.opacity = '0';
+  }, 340);
+}
+
+function startBackgroundStormScheduler() {
+  function stormLoop() {
+    if (experienceStarted) {
+      triggerBrighterThunderstormStrike();
+    }
+    const nextStrikeDelay = 10000 + Math.random() * 8000;
+    setTimeout(stormLoop, nextStrikeDelay);
+  }
+  setTimeout(stormLoop, 8000); 
+}
+
+function togglePlay() {
+  if(!localAudio) return;
+  if(localAudio.paused) {
+    localAudio.play();
+  } else {
+    localAudio.pause();
+  }
+}
+
+let dynamicFlashCooldown = true;
+
+function initVisualizerContext() {
+  try {
+    if(!audioCtx) setupWebAudioSystem();
+    analyzeBeatFrequences();
+  } catch (err) {
+    console.log("Audio visualizer executing fallback loop.");
+  }
+}
+
+function analyzeBeatFrequences() {
+  requestAnimationFrame(analyzeBeatFrequences);
+  if (!experienceStarted) return;
+  
+  if (Math.random() < 0.005 && dynamicFlashCooldown) {
+    th.style.transition = 'none';
+    th.style.opacity = Math.random() * 0.12 + 0.03; 
+    
+    setTimeout(() => {
+      th.style.transition = 'opacity 1.0s ease-out';
+      th.style.opacity = 0;
+    }, 80);
+    
+    dynamicFlashCooldown = false;
+    setTimeout(() => dynamicFlashCooldown = true, 1800);
+  }
+}
+
+const bg = document.getElementById('bg');
+let mx=0,my=0,cx=0,cy=0,cScale=1.18;
+
+document.addEventListener('mousemove', e => {
+  mx = (e.clientX / window.innerWidth  - 0.5);
+  my = (e.clientY / window.innerHeight - 0.5);
+});
+
+function lerp(start, end, amt){ return start + (end - start) * amt }
+
+function runParallaxLoop(){
+  cx = lerp(cx, mx, 0.04);
+  cy = lerp(cy, my, 0.04);
+
+  const rotY =  cx * 14;   
+  const rotX = -cy * 9;    
+  const tx   =  cx * -22;
+  const ty   =  cy * -14;
+
+  bg.style.transform = `translate(${tx}px,${ty}px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${cScale})`;
+  requestAnimationFrame(runParallaxLoop);
+}
+runParallaxLoop();
+
+const canvas = document.getElementById('rain-canvas');
+const ctx    = canvas.getContext('2d');
+let drops    = [];
+
+function resize(){
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+resize();
+window.addEventListener('resize', () => {
+  resize();
+  generateRainMatrix(240); 
+});
+
+function generateRainMatrix(density){
+  drops=[];
+  for(let i=0; i<density; i++){
+    drops.push({
+      x:   Math.random() * (canvas.width + 300) - 150, 
+      y:   Math.random() * canvas.height,
+      len: Math.random() * 26 + 20,     
+      spd: Math.random() * 3 + 5.5,     
+      op:  Math.random() * 0.42 + 0.38, 
+      w:   Math.random() * 0.65 + 0.45, 
+    });
+  }
+}
+generateRainMatrix(240); 
+
+function drawWeatherLoop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drops.forEach(d => {
+    const targetSlantX = d.x + (d.len * 0.35);
+    const targetSlantY = d.y + d.len;
+    
+    const grd = ctx.createLinearGradient(d.x, d.y, targetSlantX, targetSlantY);
+    grd.addColorStop(0, `rgba(225,238,255,0)`);
+    grd.addColorStop(1, `rgba(225,238,255,${d.op})`); 
+    
+    ctx.beginPath();
+    ctx.strokeStyle = grd;
+    ctx.lineWidth = d.w;
+    ctx.moveTo(d.x, d.y);
+    ctx.lineTo(targetSlantX, targetSlantY);
+    ctx.stroke();
+    
+    d.y += d.spd; 
+    d.x += d.spd * 0.35; 
+    
+    if(d.y > canvas.height || d.x > canvas.width + 150) {
+      d.y = -d.len;
+      d.x = Math.random() * (canvas.width + 300) - 150;
+    }
+  });
+  requestAnimationFrame(drawWeatherLoop);
+}
+drawWeatherLoop();
+</script>
+</body>
+</html>
