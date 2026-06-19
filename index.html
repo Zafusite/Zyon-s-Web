@@ -40,15 +40,13 @@ html,body{
   display: flex; align-items: center; justify-content: center;
   color: var(--text); font-family: 'Syne', sans-serif;
   font-size: 1.1rem; letter-spacing: 3px;
-  cursor: pointer; transition: opacity 0.8s ease, filter 0.8s ease;
+  cursor: none !important; transition: opacity 0.8s ease;
 }
 #enter-screen span { animation: pulse 2s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
 #scene{
   position:fixed;inset:0;
-  perspective:900px;
-  perspective-origin:50% 50%;
   z-index:0;
   overflow:hidden;
 }
@@ -59,7 +57,7 @@ html,body{
   background-size:cover;
   background-position:center;
   transform-origin:center center;
-  transform:rotateX(0deg) rotateY(0deg) scale(1.18);
+  transform:scale(1.18);
   will-change:transform;
   filter:brightness(0.25) saturate(1.15) contrast(1.05) blur(4px);
   transition:filter 1.8s ease;
@@ -158,6 +156,19 @@ html,body{
   box-shadow:0 0 28px rgba(192,57,43,0.15), 0 4px 32px rgba(0,0,0,0.4);
   transform:translateY(-2px);
 }
+
+/* card shimmer on hover */
+.card::after{
+  content:'';
+  position:absolute;inset:0;
+  border-radius:18px;
+  background:radial-gradient(ellipse 60% 40% at var(--mx,50%) var(--my,50%),
+              rgba(192,57,43,0.07) 0%, transparent 70%);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.3s;
+}
+.card:hover::after{opacity:1}
 
 .profile-row{display:flex;align-items:center;gap:16px}
 .pfp-wrap{position:relative;flex-shrink:0}
@@ -259,7 +270,7 @@ html,body{
 }
 .prog-time{font-size:0.63rem;color:var(--muted)}
 .music-ctrl{display:flex;gap:13px;color:var(--muted);font-size:0.95rem; user-select: none;}
-.music-ctrl span{cursor:pointer;transition:color 0.2s,transform 0.15s}
+.music-ctrl span{cursor:none !important;transition:color 0.2s,transform 0.15s}
 .music-ctrl span:hover{color:#fff;transform:scale(1.2)}
 
 .stitle{
@@ -341,6 +352,58 @@ html,body{
   padding:15px;letter-spacing:1.2px;
 }
 
+/* ── CURSOR ─────────────────────────────────────────────────────── */
+* { cursor: none !important; }
+
+/* outer ring */
+#cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(217, 79, 79, 0.55);
+  pointer-events: none;
+  z-index: 99999;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.25s ease, transform 0.12s ease, border-color 0.2s ease, width 0.2s ease, height 0.2s ease;
+  will-change: transform;
+}
+/* inner dot */
+#cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+  z-index: 100000;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.25s ease, background 0.2s ease, transform 0.08s ease;
+  will-change: transform;
+  box-shadow: 0 0 6px rgba(217, 79, 79, 0.9), 0 0 14px rgba(217, 79, 79, 0.4);
+}
+
+/* hover state — ring expands, dot brightens */
+body.cursor-hover #cursor-ring {
+  width: 38px; height: 38px;
+  border-color: rgba(232, 114, 138, 0.75);
+  background: rgba(192, 57, 43, 0.06);
+}
+body.cursor-hover #cursor-dot {
+  background: var(--accent2);
+  box-shadow: 0 0 8px rgba(232, 114, 138, 1), 0 0 20px rgba(232, 114, 138, 0.5);
+}
+
+/* click burst */
+body.cursor-click #cursor-ring {
+  width: 44px; height: 44px;
+  border-color: rgba(255, 100, 100, 0.9);
+  opacity: 0.6;
+  transition: width 0.08s ease, height 0.08s ease, opacity 0.08s ease, border-color 0.08s ease;
+}
+
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(192,57,43,0.35);border-radius:2px}
@@ -350,8 +413,15 @@ html,body{
 
 <audio id="local-audio" src="music.mp3" preload="auto" loop></audio>
 
+<!-- Modern two-part cursor -->
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
 <div id="enter-screen" onclick="startExperience()">
-  <span>[ click to enter ]</span>
+  <div class="enter-inner">
+    <div class="enter-logo" style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;letter-spacing:-1px;color:#fff;margin-bottom:10px;">zy0n</div>
+    <span>[ click to enter ]</span>
+  </div>
 </div>
 
 <div id="scene">
@@ -368,9 +438,7 @@ html,body{
       <div class="profile-row">
         <div class="pfp-wrap">
           <div class="pfp-ring"></div>
-          
           <img class="pfp" src="https://i.pinimg.com/originals/e6/5d/50/e65d50f699ab952ca89c8525058c4a0d.gif" alt="pfp"/>
-          
           <div class="status-dot"></div>
         </div>
         <div class="profile-info">
@@ -395,11 +463,9 @@ html,body{
     <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 100%;">
       <div class="music-wrap">
         <img class="music-art" src="https://images.genius.com/314b5e9b4b52df169dbebafc75e77d29.1000x1000x1.png" alt="art"/>
-        
         <div class="music-info">
           <div class="music-title">all i want is you</div>
           <div class="music-artist">Rebzyyx feat. hoshie star</div>
-          
           <div class="prog-row">
             <span class="prog-time" id="time-current">0:00</span>
             <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
@@ -410,7 +476,6 @@ html,body{
           <span>⏮</span><span id="play-btn" onclick="togglePlay()">⏸</span><span>⏭</span>
         </div>
       </div>
-      
       <div style="flex: 1; display: flex; align-items: center; justify-content: center; margin-top: 14px; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);">
         <img src="https://i.pinimg.com/originals/5c/0d/3a/5c0d3aeec3c658b9beac15df5adc5ca6.gif" style="width: 100%; height: 100%; min-height: 120px; max-height: 200px; object-fit: cover; opacity: 0.85;" alt="vibes-gif"/>
       </div>
@@ -419,7 +484,6 @@ html,body{
     <div class="card">
       <div class="stitle">find me here</div>
       <div class="link-list">
-        
         <a class="lnk" href="https://discordapp.com/users/1215150620403699746" target="_blank">
           <div class="lnk-icon dc">
             <img src="https://cdn.simpleicons.org/discord/white" width="18" height="18" alt="Discord">
@@ -427,15 +491,13 @@ html,body{
           <div class="lnk-main"><div class="lnk-name">Discord</div><div class="lnk-sub">zaf_ina</div></div>
           <span class="lnk-arrow">›</span>
         </a>
-        
-        <a class="lnk" href="https://www.instagram.com/insomniaced_f1na._" target="_blank">
+        <a class="lnk" href="https://www.instagram.com/z4f_ina/" target="_blank">
           <div class="lnk-icon ig">
             <img src="https://cdn.simpleicons.org/instagram/white" width="18" height="18" alt="Instagram">
           </div>
-          <div class="lnk-main"><div class="lnk-name">Instagram</div><div class="lnk-sub">insomniaced_f1na._</div></div>
+          <div class="lnk-main"><div class="lnk-name">Instagram</div><div class="lnk-sub">z4f_ina</div></div>
           <span class="lnk-arrow">›</span>
         </a>
-        
         <a class="lnk" href="https://www.roblox.com/users/4037094061/profile" target="_blank">
           <div class="lnk-icon rb">
             <img src="https://cdn.simpleicons.org/roblox/white" width="18" height="18" alt="Roblox">
@@ -443,7 +505,6 @@ html,body{
           <div class="lnk-main"><div class="lnk-name">Roblox</div><div class="lnk-sub">Zyon</div></div>
           <span class="lnk-arrow">›</span>
         </a>
-        
         <a class="lnk" href="https://open.spotify.com/user/31odrgyjd5hircvmvo3pypgigj7u" target="_blank">
           <div class="lnk-icon sp">
             <img src="https://cdn.simpleicons.org/spotify/white" width="18" height="18" alt="Spotify">
@@ -451,7 +512,6 @@ html,body{
           <div class="lnk-main"><div class="lnk-name">Spotify</div><div class="lnk-sub">Zyon<3</div></div>
           <span class="lnk-arrow">›</span>
         </a>
-        
       </div>
     </div>
 
@@ -523,274 +583,254 @@ html,body{
 </div>
 
 <script>
+// ── STATE ─────────────────────────────────────────────────────────
 let experienceStarted = false;
-let audioCtx;
-let rainFilter, thunderFilter;
+let audioCtx, rainFilter;
 
+// ── AUDIO ELEMENTS ────────────────────────────────────────────────
 const localAudio = document.getElementById('local-audio');
-const playBtn = document.getElementById('play-btn');
+const playBtn    = document.getElementById('play-btn');
 
 function formatTime(secs) {
-  if(isNaN(secs) || secs < 0) return "0:00";
+  if (isNaN(secs) || secs < 0) return "0:00";
   const m = Math.floor(secs / 60);
   const s = Math.floor(secs % 60);
   return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
 localAudio.addEventListener('timeupdate', () => {
-  const current = localAudio.currentTime;
+  const current  = localAudio.currentTime;
   const duration = localAudio.duration || 1;
-  const percent = (current / duration) * 100;
-  document.getElementById('prog-fill').style.width = percent + '%';
+  document.getElementById('prog-fill').style.width = (current / duration * 100) + '%';
   document.getElementById('time-current').innerText = formatTime(current);
 });
-
 localAudio.addEventListener('loadedmetadata', () => {
   document.getElementById('time-total').innerText = formatTime(localAudio.duration);
 });
-
-localAudio.addEventListener('play', () => { playBtn.innerText = '⏸'; });
+localAudio.addEventListener('play',  () => { playBtn.innerText = '⏸'; });
 localAudio.addEventListener('pause', () => { playBtn.innerText = '▶'; });
 
+// ── WEB AUDIO ─────────────────────────────────────────────────────
 function setupWebAudioSystem() {
-  if(audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  
-  const bufferSize = 2 * audioCtx.sampleRate;
-  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const output = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    output[i] = Math.random() * 2.0 - 1.0;
-  }
-  
-  const whiteNoise = audioCtx.createBufferSource();
-  whiteNoise.buffer = noiseBuffer;
-  whiteNoise.loop = true;
-  
-  rainFilter = audioCtx.createBiquadFilter();
-  rainFilter.type = 'lowpass';
-  rainFilter.frequency.setValueAtTime(800, audioCtx.currentTime); 
-  
-  const rainGain = audioCtx.createGain();
-  rainGain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
-  
-  whiteNoise.connect(rainFilter);
-  rainFilter.connect(rainGain);
-  rainGain.connect(audioCtx.destination);
-  whiteNoise.start();
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const bufferSize  = 2 * audioCtx.sampleRate;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output      = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+    const whiteNoise  = audioCtx.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+    whiteNoise.loop   = true;
+    rainFilter        = audioCtx.createBiquadFilter();
+    rainFilter.type   = 'lowpass';
+    rainFilter.frequency.setValueAtTime(800, audioCtx.currentTime);
+    const rainGain    = audioCtx.createGain();
+    rainGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+    whiteNoise.connect(rainFilter);
+    rainFilter.connect(rainGain);
+    rainGain.connect(audioCtx.destination);
+    whiteNoise.start();
+  } catch(e) { console.log('Audio ctx failed', e); }
 }
 
-function triggerMuffledThunderStrikeAudio() {
+function triggerThunderAudio() {
   if (!audioCtx) return;
-  
-  const bufferSize = 3 * audioCtx.sampleRate;
-  const thunderBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const output = thunderBuffer.getChannelData(0);
-  
-  let lastOut = 0.0;
-  for (let i = 0; i < bufferSize; i++) {
-    const white = Math.random() * 2.0 - 1.0;
-    output[i] = 0.02 * white + 0.98 * lastOut; 
-    lastOut = output[i];
-  }
-  
-  const thunderSource = audioCtx.createBufferSource();
-  thunderSource.buffer = thunderBuffer;
-  
-  thunderFilter = audioCtx.createBiquadFilter();
-  thunderFilter.type = 'lowpass';
-  thunderFilter.frequency.setValueAtTime(200, audioCtx.currentTime);
-  
-  const thunderGain = audioCtx.createGain();
-  thunderGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-  thunderGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
-  
-  thunderSource.connect(thunderFilter);
-  thunderFilter.connect(thunderGain);
-  thunderGain.connect(audioCtx.destination);
-  
-  thunderSource.start();
+  try {
+    const bufferSize    = 3 * audioCtx.sampleRate;
+    const thunderBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output        = thunderBuffer.getChannelData(0);
+    let lastOut = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      output[i] = 0.02 * white + 0.98 * lastOut;
+      lastOut = output[i];
+    }
+    const src   = audioCtx.createBufferSource();
+    src.buffer  = thunderBuffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type  = 'lowpass';
+    filter.frequency.setValueAtTime(200, audioCtx.currentTime);
+    const gain  = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    src.start();
+  } catch(e) {}
 }
 
-const enterScreen = document.getElementById('enter-screen');
-const rainCanvas = document.getElementById('rain-canvas');
+// ── THUNDER FLASH ─────────────────────────────────────────────────
 const th = document.getElementById('thunder');
+
+function triggerThunderstormStrike() {
+  triggerThunderAudio();
+  th.style.transition = 'none';
+  th.style.opacity    = '0.90';
+  setTimeout(() => { th.style.transition = 'opacity 0.12s ease-out'; th.style.opacity = '0.25'; }, 120);
+  setTimeout(() => { th.style.transition = 'none'; th.style.opacity = '0.80'; }, 240);
+  setTimeout(() => { th.style.transition = 'opacity 2.4s cubic-bezier(0.15,0.85,0.2,1)'; th.style.opacity = '0'; }, 340);
+}
+
+function startStormScheduler() {
+  function loop() {
+    if (experienceStarted) triggerThunderstormStrike();
+    setTimeout(loop, 10000 + Math.random() * 8000);
+  }
+  setTimeout(loop, 8000);
+}
+
+// ── EXPERIENCE START ──────────────────────────────────────────────
+const enterScreen = document.getElementById('enter-screen');
+const rainCanvas  = document.getElementById('rain-canvas');
 
 function startExperience() {
   experienceStarted = true;
   enterScreen.style.opacity = '0';
   setTimeout(() => enterScreen.style.display = 'none', 800);
-  
-  rainCanvas.style.opacity = '1'; 
+  rainCanvas.style.opacity = '1';
+  cursorRing.style.opacity = '1';
+  cursorDot.style.opacity  = '1';
   setupWebAudioSystem();
-  
-  triggerBrighterThunderstormStrike();
-  startBackgroundStormScheduler();
-  
+  triggerThunderstormStrike();
+  startStormScheduler();
   localAudio.volume = 0.45;
-  const playPromise = localAudio.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(error => {
-      console.log("Audio play failed:", error);
-    });
-  }
-  
-  initVisualizerContext();
-}
-
-function triggerBrighterThunderstormStrike() {
-  triggerMuffledThunderStrikeAudio(); 
-  
-  th.style.transition = 'none';
-  th.style.opacity = '0.90'; 
-  
-  setTimeout(() => {
-    th.style.transition = 'opacity 0.12s ease-out';
-    th.style.opacity = '0.25';
-  }, 120);
-  
-  setTimeout(() => {
-    th.style.transition = 'none';
-    th.style.opacity = '0.80'; 
-  }, 240);
-  
-  setTimeout(() => {
-    th.style.transition = 'opacity 2.4s cubic-bezier(0.15, 0.85, 0.2, 1)';
-    th.style.opacity = '0';
-  }, 340);
-}
-
-function startBackgroundStormScheduler() {
-  function stormLoop() {
-    if (experienceStarted) {
-      triggerBrighterThunderstormStrike();
-    }
-    const nextStrikeDelay = 10000 + Math.random() * 8000;
-    setTimeout(stormLoop, nextStrikeDelay);
-  }
-  setTimeout(stormLoop, 8000); 
+  const p = localAudio.play();
+  if (p !== undefined) p.catch(e => console.log("Audio play failed:", e));
 }
 
 function togglePlay() {
-  if(!localAudio) return;
-  if(localAudio.paused) {
-    localAudio.play();
-  } else {
-    localAudio.pause();
-  }
+  if (!localAudio) return;
+  localAudio.paused ? localAudio.play() : localAudio.pause();
 }
 
-let dynamicFlashCooldown = true;
-
-function initVisualizerContext() {
-  try {
-    if(!audioCtx) setupWebAudioSystem();
-    analyzeBeatFrequences();
-  } catch (err) {
-    console.log("Audio visualizer executing fallback loop.");
-  }
-}
-
-function analyzeBeatFrequences() {
-  requestAnimationFrame(analyzeBeatFrequences);
-  if (!experienceStarted) return;
-  
-  if (Math.random() < 0.005 && dynamicFlashCooldown) {
-    th.style.transition = 'none';
-    th.style.opacity = Math.random() * 0.12 + 0.03; 
-    
-    setTimeout(() => {
-      th.style.transition = 'opacity 1.0s ease-out';
-      th.style.opacity = 0;
-    }, 80);
-    
-    dynamicFlashCooldown = false;
-    setTimeout(() => dynamicFlashCooldown = true, 1800);
-  }
-}
-
-const bg = document.getElementById('bg');
-let mx=0,my=0,cx=0,cy=0,cScale=1.18;
-
-document.addEventListener('mousemove', e => {
-  mx = (e.clientX / window.innerWidth  - 0.5);
-  my = (e.clientY / window.innerHeight - 0.5);
-});
-
-function lerp(start, end, amt){ return start + (end - start) * amt }
-
-function runParallaxLoop(){
-  cx = lerp(cx, mx, 0.04);
-  cy = lerp(cy, my, 0.04);
-
-  const rotY =  cx * 14;   
-  const rotX = -cy * 9;    
-  const tx   =  cx * -22;
-  const ty   =  cy * -14;
-
-  bg.style.transform = `translate(${tx}px,${ty}px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${cScale})`;
-  requestAnimationFrame(runParallaxLoop);
-}
-runParallaxLoop();
-
+// ── RAIN ─────────────────────────────────────────────────────────
 const canvas = document.getElementById('rain-canvas');
 const ctx    = canvas.getContext('2d');
 let drops    = [];
 
-function resize(){
+function resize() {
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
 }
-
 resize();
-window.addEventListener('resize', () => {
-  resize();
-  generateRainMatrix(240); 
-});
+window.addEventListener('resize', () => { resize(); generateRain(65); });
 
-function generateRainMatrix(density){
-  drops=[];
-  for(let i=0; i<density; i++){
+function generateRain(density) {
+  drops = [];
+  for (let i = 0; i < density; i++) {
+    const op = (Math.random() * 0.25 + 0.15).toFixed(2);
     drops.push({
-      x:   Math.random() * (canvas.width + 300) - 150, 
+      x:   Math.random() * (canvas.width + 300) - 150,
       y:   Math.random() * canvas.height,
-      len: Math.random() * 26 + 20,     
-      spd: Math.random() * 3 + 5.5,     
-      op:  Math.random() * 0.42 + 0.38, 
-      w:   Math.random() * 0.65 + 0.45, 
+      len: Math.random() * 20 + 12,
+      spd: Math.random() * 3 + 4.5,
+      col: `rgba(225,238,255,${op})`,
+      w:   Math.random() * 0.45 + 0.3,
     });
   }
 }
-generateRainMatrix(240); 
+generateRain(65);
 
-function drawWeatherLoop(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  drops.forEach(d => {
-    const targetSlantX = d.x + (d.len * 0.35);
-    const targetSlantY = d.y + d.len;
-    
-    const grd = ctx.createLinearGradient(d.x, d.y, targetSlantX, targetSlantY);
-    grd.addColorStop(0, `rgba(225,238,255,0)`);
-    grd.addColorStop(1, `rgba(225,238,255,${d.op})`); 
-    
+function drawRain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < drops.length; i++) {
+    const d = drops[i];
     ctx.beginPath();
-    ctx.strokeStyle = grd;
-    ctx.lineWidth = d.w;
+    ctx.strokeStyle = d.col;
+    ctx.lineWidth   = d.w;
     ctx.moveTo(d.x, d.y);
-    ctx.lineTo(targetSlantX, targetSlantY);
+    ctx.lineTo(d.x + d.len * 0.35, d.y + d.len);
     ctx.stroke();
-    
-    d.y += d.spd; 
-    d.x += d.spd * 0.35; 
-    
-    if(d.y > canvas.height || d.x > canvas.width + 150) {
+    d.y += d.spd;
+    d.x += d.spd * 0.35;
+    if (d.y > canvas.height || d.x > canvas.width + 150) {
       d.y = -d.len;
       d.x = Math.random() * (canvas.width + 300) - 150;
     }
-  });
-  requestAnimationFrame(drawWeatherLoop);
+  }
+  requestAnimationFrame(drawRain);
 }
-drawWeatherLoop();
+drawRain();
+
+// ── PARALLAX (throttled to 30fps) ─────────────────────────────────
+const bg = document.getElementById('bg');
+let mx = 0, my = 0, cx = 0, cy = 0;
+let lastParallax = 0;
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function runParallax(ts) {
+  requestAnimationFrame(runParallax);
+  if (ts - lastParallax < 33) return; // ~30fps cap
+  lastParallax = ts;
+  cx = lerp(cx, mx, 0.05);
+  cy = lerp(cy, my, 0.05);
+  bg.style.transform = `translate(${cx * -18}px,${cy * -11}px) scale(1.18)`;
+}
+requestAnimationFrame(runParallax);
+
+// ── CURSOR ────────────────────────────────────────────────────────
+const cursorRing = document.getElementById('cursor-ring');
+const cursorDot  = document.getElementById('cursor-dot');
+
+let cursorX = 0, cursorY = 0;
+let ringX = 0, ringY = 0;
+let rafCursor;
+
+// ring lags slightly behind dot for a fluid feel
+function animateCursor() {
+  ringX = lerp(ringX, cursorX, 0.18);
+  ringY = lerp(ringY, cursorY, 0.18);
+  cursorRing.style.left = ringX + 'px';
+  cursorRing.style.top  = ringY + 'px';
+  rafCursor = requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+document.addEventListener('mousemove', e => {
+  cursorX = e.clientX;
+  cursorY = e.clientY;
+
+  // dot snaps instantly
+  cursorDot.style.left = cursorX + 'px';
+  cursorDot.style.top  = cursorY + 'px';
+
+  // parallax input
+  mx = (e.clientX / window.innerWidth  - 0.5);
+  my = (e.clientY / window.innerHeight - 0.5);
+
+  // card shimmer
+  document.querySelectorAll('.card').forEach(card => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', ((e.clientX - r.left) / r.width  * 100).toFixed(1) + '%');
+    card.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100).toFixed(1) + '%');
+  });
+});
+
+// hover expand
+document.querySelectorAll('a, button, .lnk, .music-ctrl span, .badge').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+// click burst
+document.addEventListener('mousedown', () => {
+  document.body.classList.add('cursor-click');
+  setTimeout(() => document.body.classList.remove('cursor-click'), 180);
+});
+
+document.addEventListener('mouseleave', () => {
+  cursorRing.style.opacity = '0';
+  cursorDot.style.opacity  = '0';
+});
+document.addEventListener('mouseenter', () => {
+  if (experienceStarted) {
+    cursorRing.style.opacity = '1';
+    cursorDot.style.opacity  = '1';
+  }
+});
 </script>
 </body>
 </html>
